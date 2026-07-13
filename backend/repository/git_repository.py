@@ -3,7 +3,7 @@ Git repository management.
 """
 
 from pathlib import Path
-
+from utils.git_utils import is_valid_github_url
 from git import GitCommandError, Repo
 
 
@@ -15,6 +15,11 @@ class GitRepository:
         self.clone_directory.mkdir(exist_ok=True)
 
     def clone_repository(self, repository_url: str):
+        if not is_valid_github_url(repository_url):
+            return {
+                "success": False,
+                "message": "Invalid GitHub repository URL."
+            }
 
         project_name = repository_url.rstrip("/").split("/")[-1]
 
