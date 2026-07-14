@@ -7,7 +7,11 @@ import networkx as nx
 
 class ImpactAnalyzer:
 
-    def analyze(self, graph: nx.DiGraph, function_name: str):
+    def analyze(
+        self,
+        graph: nx.DiGraph,
+        function_name: str,
+    ):
 
         if function_name not in graph:
 
@@ -16,8 +20,19 @@ class ImpactAnalyzer:
                 "message": f"Function '{function_name}' not found."
             }
 
-        callers = list(graph.predecessors(function_name))
-        callees = list(graph.successors(function_name))
+        callers = sorted(
+            list(graph.predecessors(function_name))
+        )
+
+        callees = sorted(
+            list(graph.successors(function_name))
+        )
+
+        incoming = len(callers)
+        outgoing = len(callees)
+
+        impact_score = incoming
+        dependency_score = incoming + outgoing
 
         return {
 
@@ -25,24 +40,39 @@ class ImpactAnalyzer:
 
             "function": function_name,
 
-            "safe_to_delete": len(callers) == 0,
+            "safe_to_delete": incoming == 0,
+
+            "risk": self.calculate_risk(
+                incoming,
+                outgoing,
+            ),
+
+            "impact_score": impact_score,
+
+            "dependency_score": dependency_score,
+
+            "incoming_calls": incoming,
+
+            "outgoing_calls": outgoing,
 
             "affected_functions": callers,
 
             "calls": callees,
 
-            "impact_score": len(callers),
-
-            "risk": self.calculate_risk(len(callers))
-
         }
 
-    def calculate_risk(self, impact_score: int):
+    def calculate_risk(
+        self,
+        incoming: int,
+        outgoing: int,
+    ):
 
-        if impact_score == 0:
+        total = incoming + outgoing
+
+        if total == 0:
             return "LOW"
 
-        if impact_score <= 3:
+        if total <= 5:
             return "MEDIUM"
 
         return "HIGH"

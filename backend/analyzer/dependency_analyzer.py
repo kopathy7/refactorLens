@@ -23,26 +23,84 @@ class DependencyAnalyzer:
     }
 
     def __init__(self):
+
         self.parser = PythonParser()
+
         self.builder = DependencyGraphBuilder()
 
-    def analyze_repository(self, repository_path: Path):
+    def analyze_repository(
+        self,
+        repository_path: Path,
+    ):
 
-        all_edges = []
+        python_files = []
+
+        functions = []
+
+        # -------------------------
+        # Pass 1
+        # Collect every Python file
+        # Collect every function
+        # -------------------------
 
         for file in repository_path.rglob("*.py"):
 
-            # Skip ignored directories
-            if any(part in self.IGNORE_DIRS for part in file.parts):
+            if any(
+                part in self.IGNORE_DIRS
+                for part in file.parts
+            ):
                 continue
 
+            python_files.append(file)
+
             try:
-                edges = self.parser.parse_calls(file)
-                all_edges.extend(edges)
+
+                functions.extend(
+                    self.parser.parse_functions(file)
+                )
 
             except Exception as error:
-                print(f"⚠ Failed to parse {file}: {error}")
 
-        graph = self.builder.build(all_edges)
+                print(
+                    f"⚠ Failed parsing functions in {file}: {error}"
+                )
 
-        return graph
+        project_functions = {
+            function.name
+            for function in functions
+        }
+
+        # -------------------------
+        # Pass 2
+        # Collect call edges
+        # -------------------------
+
+        all_edges = []
+
+        for file in python_files:
+
+            try:
+
+                all_edges.extend(
+
+                    self.parser.parse_calls(
+                        file,
+                        project_functions,
+                    )
+
+                )
+
+            except Exception as error:
+
+                print(
+                    f"⚠ Failed parsing calls in {file}: {error}"
+                )
+
+        graph = self.builder.build(
+            all_edges
+        )
+
+        return {
+            "graph": graph,
+            "functions": functions,
+        }

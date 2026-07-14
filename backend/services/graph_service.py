@@ -14,26 +14,51 @@ class GraphService:
 
     def get_graph(self, repository: str):
 
-        graph = self.analyzer.analyze_repository(
+        analysis = self.analyzer.analyze_repository(
             Path(f"cloned_repositories/{repository}")
         )
 
-        nodes = [
-            {
-                "id": node
-            }
-            for node in graph.nodes()
-        ]
+        graph = analysis["graph"]
+        functions = analysis["functions"]
+
+        function_lookup = {
+            function.name: function
+            for function in functions
+        }
+
+        nodes = []
+
+        for node in graph.nodes():
+
+            info = function_lookup.get(node)
+
+            if info:
+
+                nodes.append({
+                    "id": info.name,
+                    "label": info.name,
+                    "file": info.file,
+                    "line": info.line,
+                })
+
+            else:
+
+                nodes.append({
+                    "id": node,
+                    "label": node,
+                    "file": "",
+                    "line": 0,
+                })
 
         edges = [
             {
                 "source": source,
-                "target": target
+                "target": target,
             }
             for source, target in graph.edges()
         ]
 
         return {
             "nodes": nodes,
-            "edges": edges
+            "edges": edges,
         }

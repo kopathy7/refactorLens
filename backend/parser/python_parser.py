@@ -8,6 +8,7 @@ from pathlib import Path
 from models.node import FunctionNode
 from models.edge import CallEdge
 
+
 class PythonParser:
 
     def parse_functions(self, file_path: Path):
@@ -32,22 +33,18 @@ class PythonParser:
                 )
 
         return functions
-    
-    def parse_calls(self, file_path: Path):
+
+    def parse_calls(
+        self,
+        file_path: Path,
+        project_functions: set[str],
+    ):
 
         with open(file_path, "r", encoding="utf-8") as file:
             source = file.read()
 
         tree = ast.parse(source)
 
-        # ---------- PASS 1 ----------
-        project_functions = set()
-
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                project_functions.add(node.name)
-
-        # ---------- PASS 2 ----------
         edges = []
 
         for node in ast.walk(tree):
@@ -58,19 +55,20 @@ class PythonParser:
 
                 for child in ast.walk(node):
 
-                    if isinstance(child, ast.Call):
+                    if (
+                        isinstance(child, ast.Call)
+                        and isinstance(child.func, ast.Name)
+                    ):
 
-                        if isinstance(child.func, ast.Name):
+                        callee = child.func.id
 
-                            callee = child.func.id
+                        if callee in project_functions:
 
-                            if callee in project_functions:
-
-                                edges.append(
-                                    CallEdge(
-                                        caller=caller,
-                                        callee=callee,
-                                    )
+                            edges.append(
+                                CallEdge(
+                                    caller=caller,
+                                    callee=callee,
                                 )
+                            )
 
         return edges

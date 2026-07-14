@@ -10,17 +10,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "@xyflow/react": "^12.11.2",
     "axios": "^1.18.1",
     "framer-motion": "^12.42.2",
+    "lucide-react": "^1.24.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "reactflow": "^11.11.4"
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.18.1",
+    "react-syntax-highlighter": "^16.1.1",
+    "reactflow": "^11.11.4",
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^10.6.0",
     "eslint-plugin-react-hooks": "^7.1.1",
