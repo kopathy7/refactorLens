@@ -5,34 +5,32 @@ Python AST Parser
 import ast
 from pathlib import Path
 
-from models.node import FunctionNode
 from models.edge import CallEdge
+from parser.visitors.function_visitor import FunctionVisitor
 
 
 class PythonParser:
 
-    def parse_functions(self, file_path: Path):
+    def parse_functions(
+        self,
+        file_path: Path,
+    ):
 
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8",
+        ) as file:
+
             source = file.read()
 
         tree = ast.parse(source)
 
-        functions = []
+        visitor = FunctionVisitor(file_path)
 
-        for node in ast.walk(tree):
+        visitor.visit(tree)
 
-            if isinstance(node, ast.FunctionDef):
-
-                functions.append(
-                    FunctionNode(
-                        name=node.name,
-                        file=str(file_path),
-                        line=node.lineno,
-                    )
-                )
-
-        return functions
+        return visitor.functions
 
     def parse_calls(
         self,
@@ -40,7 +38,12 @@ class PythonParser:
         project_functions: set[str],
     ):
 
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8",
+        ) as file:
+
             source = file.read()
 
         tree = ast.parse(source)
@@ -49,26 +52,55 @@ class PythonParser:
 
         for node in ast.walk(tree):
 
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                ),
+            ):
 
                 caller = node.name
 
                 for child in ast.walk(node):
 
-                    if (
-                        isinstance(child, ast.Call)
-                        and isinstance(child.func, ast.Name)
+                    if not isinstance(
+                        child,
+                        ast.Call,
+                    ):
+                        continue
+
+                    callee = None
+
+                    # foo()
+                    if isinstance(
+                        child.func,
+                        ast.Name,
                     ):
 
                         callee = child.func.id
 
-                        if callee in project_functions:
+                    # self.foo()
+                    # cls.foo()
+                    # obj.foo()
+                    # module.foo()
+                    elif isinstance(
+                        child.func,
+                        ast.Attribute,
+                    ):
 
-                            edges.append(
-                                CallEdge(
-                                    caller=caller,
-                                    callee=callee,
-                                )
+                        callee = child.func.attr
+
+                    if (
+                        callee
+                        and callee in project_functions
+                    ):
+
+                        edges.append(
+                            CallEdge(
+                                caller=caller,
+                                callee=callee,
                             )
+                        )
 
         return edges
