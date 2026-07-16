@@ -11,12 +11,12 @@ service = SourceService()
 
 
 @router.get("/")
-def source(
+def get_source(
     repository: str,
-    file: str,
+    function: str,
 ):
 
     return service.get_source(
         repository,
-        file,
+        function,
     )
