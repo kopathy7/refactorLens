@@ -43,7 +43,8 @@ class PythonParser:
         tree = ast.parse(source)
 
         visitor = CallVisitor(
-            project_functions
+            project_functions,
+            file_path,
         )
 
         visitor.visit(tree)

@@ -4,8 +4,13 @@ Impact Analyzer
 
 import networkx as nx
 
+from analyzer.risk_analyzer import RiskAnalyzer
+
 
 class ImpactAnalyzer:
+
+    def __init__(self):
+        self.risk_analyzer = RiskAnalyzer()
 
     def analyze(
         self,
@@ -34,6 +39,8 @@ class ImpactAnalyzer:
         impact_score = incoming
         dependency_score = incoming + outgoing
 
+        risk = self.risk_analyzer.score(graph, function_name)
+
         return {
 
             "success": True,
@@ -42,10 +49,11 @@ class ImpactAnalyzer:
 
             "safe_to_delete": incoming == 0,
 
-            "risk": self.calculate_risk(
-                incoming,
-                outgoing,
-            ),
+            "risk": risk["level"],
+
+            "risk_reasons": risk["reasons"],
+
+            "is_cyclic": risk["is_cyclic"],
 
             "impact_score": impact_score,
 
@@ -60,19 +68,3 @@ class ImpactAnalyzer:
             "calls": callees,
 
         }
-
-    def calculate_risk(
-        self,
-        incoming: int,
-        outgoing: int,
-    ):
-
-        total = incoming + outgoing
-
-        if total == 0:
-            return "LOW"
-
-        if total <= 5:
-            return "MEDIUM"
-
-        return "HIGH"

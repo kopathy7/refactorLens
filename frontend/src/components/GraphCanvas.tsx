@@ -3,10 +3,13 @@ import {
   Controls,
   MiniMap,
   ReactFlow,
+  useReactFlow,
   type Edge,
   type Node,
   type NodeMouseHandler,
 } from "@xyflow/react";
+
+import { useEffect } from "react";
 
 import "@xyflow/react/dist/style.css";
 
@@ -19,39 +22,82 @@ const nodeTypes = {
 interface Props {
   nodes: Node[];
   edges: Edge[];
+  selectedNode?: string;
   onNodeClick?: NodeMouseHandler;
+}
+
+function FocusController({
+  nodes,
+  selectedNode,
+}: {
+  nodes: Node[];
+  selectedNode?: string;
+}) {
+  const reactFlow = useReactFlow();
+
+  useEffect(() => {
+    if (!selectedNode) return;
+
+    const node = nodes.find(
+      (n) => n.id === selectedNode
+    );
+
+    if (!node) return;
+
+    reactFlow.setCenter(
+      node.position.x,
+      node.position.y,
+      {
+        zoom: 1.6,
+        duration: 800,
+      }
+    );
+  }, [
+    selectedNode,
+    nodes,
+    reactFlow,
+  ]);
+
+  return null;
 }
 
 export default function GraphCanvas({
   nodes,
   edges,
+  selectedNode,
   onNodeClick,
 }: Props) {
   return (
-    <div className="h-full w-full">
+    <div
+      className="w-full h-full bg-slate-950"
+      style={{
+        width: "100%",
+        height: "100%",
+        minHeight: 700,
+      }}
+    >
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodeClick={onNodeClick}
         fitView
-        fitViewOptions={{
-          padding: 0.2,
-        }}
-        proOptions={{
-          hideAttribution: true,
-        }}
+        onNodeClick={onNodeClick}
       >
-        <Background gap={20} size={1} />
-        <MiniMap
-            pannable
-            zoomable
-            nodeColor="#6366f1"
-            bgColor="#0f172a"
-            maskColor="rgba(15,23,42,0.5)"
+
+        <FocusController
+          nodes={nodes}
+          selectedNode={selectedNode}
         />
+
+        <Background />
+
+        <MiniMap />
+
         <Controls />
+
       </ReactFlow>
+
     </div>
   );
 }

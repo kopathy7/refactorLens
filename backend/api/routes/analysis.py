@@ -16,8 +16,8 @@ impact = ImpactAnalyzer()
 @router.get("/impact")
 def analyze(repository: str, function: str):
 
-    graph = dependency.analyze_repository(
+    result = dependency.analyze_repository(
         Path(f"cloned_repositories/{repository}")
     )
 
-    return impact.analyze(graph, function)
+    return impact.analyze(result["graph"], function)

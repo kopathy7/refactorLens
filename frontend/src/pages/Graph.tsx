@@ -83,6 +83,7 @@ export default function Graph() {
             nodes={nodes}
             edges={edges}
             onNodeClick={handleNodeClick}
+            selectedNode={selectedFunction}
           />
 
         </div>

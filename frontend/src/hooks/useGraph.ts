@@ -110,10 +110,49 @@ export function useGraph(
 
           }));
 
+        const nodeIds = new Set(
+          flowNodes.map((n) => n.id)
+        );
+
+        const seenEdges = new Set<string>();
+
+        const validEdges = flowEdges.filter((edge) => {
+
+          // Drop edges pointing at nodes that don't exist
+          if (
+            !nodeIds.has(edge.source) ||
+            !nodeIds.has(edge.target)
+          ) {
+            return false;
+          }
+
+          // Drop self-loops — dagre's cycle-breaking step
+          // throws when a node calls itself (edge.source === edge.target),
+          // which also shows up when two different functions with the
+          // same name get merged into a single graph node.
+          if (edge.source === edge.target) {
+            return false;
+          }
+
+          // Dedupe repeated source -> target pairs (e.g. a function
+          // called twice from the same caller), which can also
+          // confuse dagre's layout pass.
+          const key = `${edge.source}->${edge.target}`;
+
+          if (seenEdges.has(key)) {
+            return false;
+          }
+
+          seenEdges.add(key);
+
+          return true;
+
+        });
+
         const layout =
           getLayoutedElements(
             flowNodes,
-            flowEdges
+            validEdges
           );
 
         setNodes(layout.nodes);

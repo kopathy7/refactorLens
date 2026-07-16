@@ -3,15 +3,22 @@ Call Visitor
 """
 
 import ast
+from pathlib import Path
 
 from models.edge import CallEdge
 
 
 class CallVisitor(ast.NodeVisitor):
 
-    def __init__(self, project_functions: set[str]):
+    def __init__(
+        self,
+        project_functions: set[str],
+        file_path: Path,
+    ):
 
         self.project_functions = project_functions
+
+        self.current_file = str(file_path)
 
         self.edges: list[CallEdge] = []
 
@@ -41,7 +48,10 @@ class CallVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-    def visit_AsyncFunctionDef(self, node):
+    def visit_AsyncFunctionDef(
+        self,
+        node: ast.AsyncFunctionDef,
+    ):
 
         self.visit_FunctionDef(node)
 
@@ -49,16 +59,9 @@ class CallVisitor(ast.NodeVisitor):
 
         callee = None
 
-        # foo()
-
         if isinstance(node.func, ast.Name):
 
             callee = node.func.id
-
-        # self.foo()
-        # obj.foo()
-        # cls.foo()
-        # module.foo()
 
         elif isinstance(node.func, ast.Attribute):
 
@@ -70,12 +73,12 @@ class CallVisitor(ast.NodeVisitor):
         ):
 
             self.edges.append(
-
                 CallEdge(
                     caller=self.current_function,
                     callee=callee,
+                    file=self.current_file,
+                    line=node.lineno,
                 )
-
             )
 
         self.generic_visit(node)

@@ -15,7 +15,7 @@ export default function FunctionNode({
   data,
 }: NodeProps<FunctionNode>) {
   return (
-    <div className="min-w-[220px] rounded-xl border border-slate-700 bg-slate-900 px-5 py-4 shadow-lg transition-all hover:border-indigo-500">
+    <div className="min-w-55 rounded-xl border border-slate-700 bg-slate-900 px-5 py-4 shadow-lg transition-all hover:border-indigo-500">
 
       <Handle type="target" position={Position.Top} />
 

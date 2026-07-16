@@ -11,7 +11,9 @@ from models.node import FunctionNode
 class FunctionVisitor(ast.NodeVisitor):
 
     def __init__(self, file_path: Path):
+
         self.file_path = file_path
+
         self.functions: list[FunctionNode] = []
 
         self.class_stack: list[str] = []
@@ -32,7 +34,7 @@ class FunctionVisitor(ast.NodeVisitor):
             else None
         )
 
-        name = (
+        full_name = (
             f"{class_name}.{node.name}"
             if class_name
             else node.name
@@ -41,8 +43,8 @@ class FunctionVisitor(ast.NodeVisitor):
         self.functions.append(
 
             FunctionNode(
-                id=name,
-                name=node.name,
+                id=full_name,
+                name=full_name,
                 file=str(self.file_path),
                 module="",
                 line=node.lineno,
@@ -66,7 +68,7 @@ class FunctionVisitor(ast.NodeVisitor):
             else None
         )
 
-        name = (
+        full_name = (
             f"{class_name}.{node.name}"
             if class_name
             else node.name
@@ -75,8 +77,8 @@ class FunctionVisitor(ast.NodeVisitor):
         self.functions.append(
 
             FunctionNode(
-                id=name,
-                name=node.name,
+                id=full_name,
+                name=full_name,
                 file=str(self.file_path),
                 module="",
                 line=node.lineno,
