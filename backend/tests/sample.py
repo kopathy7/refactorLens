@@ -1,15 +1,11 @@
-def login():
-    validate()
-    connect_db()
+class User:
+
+    def login(self):
+        pass
+
+    async def sync(self):
+        pass
 
 
-def validate():
-    print("Valid")
-
-
-def connect_db():
-    print("Connected")
-
-
-def logout():
-    validate()
+def helper():
+    pass

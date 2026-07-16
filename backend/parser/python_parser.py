@@ -5,8 +5,8 @@ Python AST Parser
 import ast
 from pathlib import Path
 
-from models.edge import CallEdge
 from parser.visitors.function_visitor import FunctionVisitor
+from parser.visitors.call_visitor import CallVisitor
 
 
 class PythonParser:
@@ -16,13 +16,10 @@ class PythonParser:
         file_path: Path,
     ):
 
-        with open(
-            file_path,
-            "r",
+        source = file_path.read_text(
             encoding="utf-8",
-        ) as file:
-
-            source = file.read()
+            errors="ignore",
+        )
 
         tree = ast.parse(source)
 
@@ -38,69 +35,17 @@ class PythonParser:
         project_functions: set[str],
     ):
 
-        with open(
-            file_path,
-            "r",
+        source = file_path.read_text(
             encoding="utf-8",
-        ) as file:
-
-            source = file.read()
+            errors="ignore",
+        )
 
         tree = ast.parse(source)
 
-        edges = []
+        visitor = CallVisitor(
+            project_functions
+        )
 
-        for node in ast.walk(tree):
+        visitor.visit(tree)
 
-            if isinstance(
-                node,
-                (
-                    ast.FunctionDef,
-                    ast.AsyncFunctionDef,
-                ),
-            ):
-
-                caller = node.name
-
-                for child in ast.walk(node):
-
-                    if not isinstance(
-                        child,
-                        ast.Call,
-                    ):
-                        continue
-
-                    callee = None
-
-                    # foo()
-                    if isinstance(
-                        child.func,
-                        ast.Name,
-                    ):
-
-                        callee = child.func.id
-
-                    # self.foo()
-                    # cls.foo()
-                    # obj.foo()
-                    # module.foo()
-                    elif isinstance(
-                        child.func,
-                        ast.Attribute,
-                    ):
-
-                        callee = child.func.attr
-
-                    if (
-                        callee
-                        and callee in project_functions
-                    ):
-
-                        edges.append(
-                            CallEdge(
-                                caller=caller,
-                                callee=callee,
-                            )
-                        )
-
-        return edges
+        return visitor.edges
