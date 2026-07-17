@@ -9,7 +9,26 @@ export function getLayoutedElements(
   edges: Edge[],
   direction: "TB" | "LR" = "TB"
 ) {
-  // Create a NEW graph every time
+  try {
+    return layoutWithDagre(nodes, edges, direction);
+  } catch (error) {
+    // dagre can throw on certain graph shapes (e.g. some cyclic /
+    // multi-component structures). Rather than crash the whole page,
+    // fall back to a simple grid so the graph still renders — log the
+    // real error so it can still be diagnosed.
+    console.error(
+      "dagre layout failed, falling back to grid layout:",
+      error
+    );
+    return gridFallback(nodes, edges);
+  }
+}
+
+function layoutWithDagre(
+  nodes: Node[],
+  edges: Edge[],
+  direction: "TB" | "LR"
+) {
   const dagreGraph = new dagre.graphlib.Graph();
 
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -32,20 +51,7 @@ export function getLayoutedElements(
   }
 
   dagre.layout(dagreGraph);
-  for (const edge of edges) {
-    console.log(edge.source, "->", edge.target);
-  }
-  console.log("Graph nodes:", dagreGraph.nodes());
-  console.log("Graph edges:", dagreGraph.edges());
 
-  const firstEdge = dagreGraph.edges()[0];
-
-  if (firstEdge) {
-    console.log(
-      "First edge data:",
-      dagreGraph.edge(firstEdge)
-    );
-  }
   const layoutedNodes = nodes.map((node) => {
     const position = dagreGraph.node(node.id);
 
@@ -62,4 +68,23 @@ export function getLayoutedElements(
     nodes: layoutedNodes,
     edges,
   };
-} 
+}
+
+function gridFallback(nodes: Node[], edges: Edge[]) {
+  const columns = Math.ceil(Math.sqrt(nodes.length));
+  const xGap = nodeWidth + 60;
+  const yGap = nodeHeight + 60;
+
+  const layoutedNodes = nodes.map((node, index) => ({
+    ...node,
+    position: {
+      x: (index % columns) * xGap,
+      y: Math.floor(index / columns) * yGap,
+    },
+  }));
+
+  return {
+    nodes: layoutedNodes,
+    edges,
+  };
+}
