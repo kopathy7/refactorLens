@@ -82,6 +82,13 @@ export default function GraphCanvas({
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
+        minZoom={0.03}
+        maxZoom={3}
+        panOnScroll
+        zoomOnScroll={false}
+        zoomOnPinch
+        panOnScrollSpeed={0.7}
         onNodeClick={onNodeClick}
       >
 

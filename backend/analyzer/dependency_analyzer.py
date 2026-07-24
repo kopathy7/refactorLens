@@ -58,11 +58,6 @@ class DependencyAnalyzer:
                 functions.extend(
                     self.parser.parse_functions(file)
                 )
-                parsed = self.parser.parse_functions(file)
-
-                print(file.name, len(parsed))
-
-                functions.extend(parsed)
 
             except Exception as error:
 
